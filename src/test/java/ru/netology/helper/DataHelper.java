@@ -1,6 +1,7 @@
 package ru.netology.helper;
 
 import com.github.javafaker.Faker;
+import org.apache.commons.lang3.RandomStringUtils;
 import ru.netology.data.CardInfo;
 
 import java.time.LocalDate;
@@ -15,9 +16,14 @@ public class DataHelper {
     }
 
     public static String getValidFullName() {
+
         return faker.name().fullName();
     }
 
+    public static String getLongOwnerName() {
+        int length = 60 + (int) (Math.random() * 1000);
+        return RandomStringUtils.randomAlphabetic(length);
+    }
     public static String getMonth() {
         return String.format("%02d", random.nextInt(12) + 1);
     }
@@ -26,10 +32,6 @@ public class DataHelper {
         return String.format("%02d", random.nextInt(12) + 13);
     }
 
-
-    public static String getInvalidFormatMonth() {
-        return String.format("%d", random.nextInt(9) + 1);
-    }
 
     public static String getYear() {
         return LocalDate.now().plusYears(5).format(DateTimeFormatter.ofPattern("yy"));
@@ -51,7 +53,7 @@ public class DataHelper {
     }
 
     public static String getInvalidFormatCVV() {
-        return String.format("%03d", random.nextInt(1000));
+        return String.format("%02d", random.nextInt(100));
     }
 
     public static String getApprovedCardNumber() {
@@ -62,7 +64,7 @@ public class DataHelper {
         return "4444 4444 4444 4442";
     }
 
-    public static String getShortCardNumber() {
+    public static String getInvalidCardNumber() {
         return "4444 4444 44";
     }
 

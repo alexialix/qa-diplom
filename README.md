@@ -17,7 +17,7 @@
 
 **для PostgreSQL**:
 
-      java "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/app" -jar artifacts/aqa-shop.jar
+    java "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/app" -jar artifacts/aqa-shop.jar
       
 **для mySQL**:
 
@@ -28,20 +28,20 @@
 
 **для PostgreSQL**:
 
-      ./gradlew clean test -DurlDB="jdbc:postgresql://localhost:5432/app"
+    ./gradlew clean test -DurlDB="jdbc:postgresql://localhost:5432/app"
 
 **для mySQL**:
 
-      ./gradlew clean test -DurlDB="jdbc:mysql://localhost:3306/app"
+    ./gradlew clean test -DurlDB="jdbc:mysql://localhost:3306/app"
       
 **7.** Создать отчёт Allure и открыть в браузере с помощью команды в терминале:
       
-      ./gradlew allureServe
+    ./gradlew allureServe
 
 **8.** Для завершения работы allureServe выполнить команду:
       
-      Ctrl+C
+    Ctrl+C
 
 **9.** Для остановки работы контейнеров выполнить команду:
       
-      docker-compose down
+    docker-compose down

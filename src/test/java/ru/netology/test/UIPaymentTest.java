@@ -1,22 +1,19 @@
 package ru.netology.test;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.selenide.AllureSelenide;
+
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.netology.data.CardInfo;
-import ru.netology.helper.DataHelper;
 import ru.netology.pages.HomePage;
 import ru.netology.pages.PaymentPage;
 
-import java.text.ParseException;
-
 
 import static com.codeborne.selenide.Selenide.open;
-import static com.codeborne.selenide.Selenide.sleep;
-import static ru.netology.helper.DataHelper.getApprovedCard;
+import static java.lang.Thread.sleep;
+import static ru.netology.helper.DataHelper.*;
 
 
 public class UIPaymentTest {
@@ -25,13 +22,7 @@ public class UIPaymentTest {
     HomePage home;
 
     @BeforeEach
-    public void prepare() throws ParseException {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--allowed-ips=127.0.0.1");
-
-        Configuration.browser = "chrome";
-        Configuration.browserBinary = "D:/chrome-win64/chrome.exe";
-
+    public void prepare() {
         open("http://localhost:8080/");
         data = getApprovedCard();
         home = new HomePage();
@@ -39,7 +30,6 @@ public class UIPaymentTest {
 
     @BeforeAll
     static void setUpAll() {
-        WebDriverManager.chromedriver().driverVersion("131.0.6778.85").setup();
         SelenideLogger.addListener("allure", new AllureSelenide());
     }
 
@@ -54,4 +44,143 @@ public class UIPaymentTest {
         PaymentPage payment = home.payment();
         payment.verifyAllFieldsEmpty();
     }
+
+    @Test
+    @DisplayName("Отправка формы с валидными данными")
+    public void testValidInfo() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), data.getName(), data.getCvc());
+        payment.verifyApprovedCardDetails();
+    }
+
+    // поле Номер карты
+
+    @Test
+    @DisplayName("Отправка формы с картой со статусом DECLINED")
+    public void testDeclinedCard() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(getDeclinedCardNumber(), data.getMonth(), data.getYear(), data.getName(), data.getCvc());
+        payment.verifyDeclinedCardDetails();
+    }
+
+
+    @Test
+    @DisplayName("Отправка формы с коротким номером карты")
+    public void testShortCardNumber() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(getInvalidCardNumber(), data.getMonth(), data.getYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidCardNumber();
+    }
+
+    // поле Месяц
+
+    @Test
+    @DisplayName("Отправка формы с невалидным месяцем 00")
+    public void testMonthInvalidValueZero() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(data.getNumber(), "00", data.getYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidFieldMonth();
+    }
+
+    @Test
+    @DisplayName("Отправка формы с невалидным месяцем 5")
+    public void testMonthInvalidValueFive() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(data.getNumber(), "5", data.getYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidFieldMonth();
+    }
+
+    @Test
+    @DisplayName("Отправка формы с невалидным месяцем 13")
+    public void testMonthInvalidValueThirteen() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(data.getNumber(), "13", data.getYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidFieldMonthFormat();
+    }
+
+    @Test
+    @DisplayName("Отправка формы с невалидным месяцем 20")
+    public void testMonthInvalidValueTwenty() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(data.getNumber(), "20", data.getYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidFieldMonthFormat();
+    }
+
+    // поле Год
+
+    @Test
+    @DisplayName("Отправка формы с невалидным полем Год")
+    public void testWrongYear() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), getInvalidYear(), data.getName(), data.getCvc());
+        payment.verifyInvalidFieldYear();
+    }
+
+    // поле Владелец
+
+    @Test
+    @DisplayName("Отправка формы с тире в поле Владелец")
+    public void testOwnerWithDash() {
+        PaymentPage payment = home.payment();
+        String name = "John Doe-Doe";
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
+
+    @Test
+    @DisplayName("Отправка формы с полем Владелец на кириллице")
+    public void testOwnerCyrillicSymbol() {
+        PaymentPage payment = home.payment();
+        String name = "Джон Доу";
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
+
+    @Test
+    @DisplayName("Отправка формы с цифрами в поле Владелец")
+    public void testOwnerWithNumbers() {
+        PaymentPage payment = home.payment();
+        String name = "Джон333";
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
+
+    @Test
+    @DisplayName("Отправка формы со спец.символами в поле Владелец")
+    public void testOwnerWithSpecSymbols() {
+        PaymentPage payment = home.payment();
+        String name = "№;%:?*()";
+        payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
+    @ParameterizedTest
+    @ValueSource(strings = {"cardNumber", "month", "year", "owner", "cvc"})
+    @DisplayName("Отправка формы с пустым полем {0}")
+    public void testEmptyFields(String field) {
+        PaymentPage payment = home.payment();
+        switch (field) {
+            case "cardNumber":
+                payment.enterValidCardDetails(null, data.getMonth(), data.getYear(), data.getName(), data.getCvc());
+                payment.verifyEmptyCardNumber();
+                break;
+            case "month":
+                payment.enterValidCardDetails(getApprovedCardNumber(), null, data.getYear(), data.getName(), data.getCvc());
+                payment.verifyEmptyFieldMonth();
+                break;
+            case "year":
+                payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), null, data.getName(), data.getCvc());
+                payment.verifyEmptyFieldYear();
+                break;
+            case "owner":
+                payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), null, data.getCvc());
+                payment.verifyEmptyOwnerField();
+                break;
+            case "cvc":
+                payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), data.getName(), null);
+                payment.verifyEmptyCVC();
+                break;
+        }
+    }
+
+
 }

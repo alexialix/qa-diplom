@@ -1,113 +1,129 @@
 package ru.netology.pages;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.Assertions;
 
 import java.time.Duration;
+import java.util.Map;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
 
 public class CreditPage {
+    private static final Duration NOTIFICATION_WAIT_TIME = Duration.ofSeconds(15);
+    // Поля для ввода
     private SelenideElement cardNumberInput = $("input[type=\"text\"][placeholder=\"0000 0000 0000 0000\"]");
     private SelenideElement expirationMonthInput = $("input[type=\"text\"][placeholder=\"08\"]");
     private SelenideElement expirationYearInput = $("input[type=\"text\"][placeholder=\"22\"]");
     private SelenideElement ownerInput = $$(".input").find(exactText("Владелец")).$(".input__control");
     private SelenideElement cvcInput = $("input[type=\"text\"][placeholder=\"999\"]");
+    // Кнопки
     private SelenideElement submitButton = $$(".button").find(exactText("Продолжить"));
+    private SelenideElement sendButton = $x("//*[@id=\"root\"]/div/form/fieldset/div[4]/button/span/span/span");
+    private SelenideElement closeApprovedNotificationButton = $x("//*[@id=\"root\"]/div/div[2]/button/span/span");
+    private SelenideElement closeDeclinedNotificationButton = $x("//*[@id=\"root\"]/div/div[3]/button");
+    // Ошибки
     private SelenideElement errorCardNumber = $x("//*[@id=\"root\"]/div/form/fieldset/div[1]/span/span/span[3]");
     private SelenideElement errorExpirationMonth = $x("//*[@id=\"root\"]/div/form/fieldset/div[2]/span/span[1]/span/span/span[3]");
     private SelenideElement errorExpirationYear = $x("//*[@id=\"root\"]/div/form/fieldset/div[2]/span/span[2]/span/span/span[3]");
     private SelenideElement errorOwner = $x("//*[@id=\"root\"]/div/form/fieldset/div[3]/span/span[1]/span/span/span[3]");
     private SelenideElement errorCvc = $x("//*[@id=\"root\"]/div/form/fieldset/div[3]/span/span[2]/span/span/span[3]");
-    private SelenideElement sendButton = $x("//*[@id=\"root\"]/div/form/fieldset/div[4]/button/span/span/span");
+    // Уведомления
     private SelenideElement notificationPending = $x("//*[text()=\"Отправляем запрос в Банк...\"]");
     private SelenideElement notificationSuccess = $x("//div[@class = \"notification notification_visible notification_status_ok notification_has-closer notification_stick-to_right notification_theme_alfa-on-white\"]//div[@class = \"notification__content\"]");
-    private SelenideElement closeApprovedNotificationButton = $x("//*[@id=\"root\"]/div/div[2]/button/span/span");
     private SelenideElement notificationFailure = $x("//*[@id=\"root\"]/div/div[3]/div[3]");
-    private SelenideElement closeDeclinedNotificationButton = $x("//*[@id=\"root\"]/div/div[3]/button");
 
-    public void enterCardDetails(String cardNumber, String month, String year, String ownerName, String cvc) {
-        cardNumberInput.val(cardNumber);
-        expirationMonthInput.val(month);
-        expirationYearInput.val(year);
-        ownerInput.val(ownerName);
-        cvcInput.val(cvc);
+    private void verifyError(SelenideElement errorElement, String expectedErrorText) {
+        submitButton.click();
+
+        if (errorElement.exists() && errorElement.isDisplayed()) {
+            errorElement.shouldBe(Condition.visible).shouldHave(Condition.text(expectedErrorText));
+        } else {
+            Assertions.fail("Ожидалось уведомление: '" + expectedErrorText + "', но оно не было отображено.");
+        }
+
+        notificationSuccess.shouldNotBe(visible);
+    }
+
+
+    public void verifyErrorVisibility(String fieldWithError) {
+        submitButton.click();
+
+        Map<String, SelenideElement> errorFields = Map.of(
+                "cardNumber", errorCardNumber,
+                "month", errorExpirationMonth,
+                "year", errorExpirationYear,
+                "owner", errorOwner,
+                "cvc", errorCvc
+        );
+
+        errorFields.forEach((field, element) ->
+                element.shouldBe(field.equals(fieldWithError) ? visible : hidden)
+        );
+
+        notificationSuccess.shouldNotBe(visible);
+    }
+
+    public void enterCardDetails(String number, String month, String year, String owner, String cvc) {
+        cardNumberInput.setValue(number);
+        expirationMonthInput.setValue(month);
+        expirationYearInput.setValue(year);
+        ownerInput.setValue(owner);
+        cvcInput.setValue(cvc);
         submitButton.click();
     }
 
-    public void verifyAcceptedCardDetails() {
-        validateNoErrors();
-        sendButton.should(visible);
-        notificationPending.should(text("Отправляем запрос в Банк..."));
-        notificationSuccess.should(text("Операция одобрена Банком."), Duration.ofSeconds(15));
-        closeApprovedNotificationButton.click();
+    public void verifyApprovedCardDetails() {
+        sendButton.should(Condition.visible);
+        notificationPending.shouldHave(text("Отправляем запрос в Банк..."), NOTIFICATION_WAIT_TIME);
+        notificationSuccess.shouldHave(text("Операция одобрена Банком."), NOTIFICATION_WAIT_TIME);
+        closeNotification(closeApprovedNotificationButton);
     }
 
+
     public void verifyDeclinedCardDetails() {
-        validateNoErrors();
-        sendButton.should(visible);
-        notificationPending.should(text("Отправляем запрос в Банк..."));
-        notificationFailure.should(text("Ошибка! Банк отказал в проведении операции."), Duration.ofSeconds(15));
-        closeDeclinedNotificationButton.click();
+        sendButton.should(Condition.visible);
+        notificationPending.should(text("Отправляем запрос в Банк..."), NOTIFICATION_WAIT_TIME);
+        notificationFailure.should(text("Ошибка! Банк отказал в проведении операции."));
+        closeNotification(closeDeclinedNotificationButton);
     }
 
     public void verifyAllFieldsAreEmpty() {
-        submitButton.click();
-        errorCardNumber.should(visible);
-        errorExpirationMonth.should(visible);
-        errorExpirationYear.should(visible);
-        errorOwner.should(visible);
-        errorCvc.should(visible);
-    }
+        verifyError(errorCardNumber, "Неверный формат");
+        verifyError(errorExpirationMonth, "Неверный формат");
+        verifyError(errorExpirationYear, "Неверный формат");
+        verifyError(errorOwner, "Поле обязательно для заполнения");
+        verifyError(errorCvc, "Неверный формат");
 
-    public void verifyInvalidExpirationMonth() {
-        validateNoErrors();
-        errorExpirationMonth.should(visible).should(text("Неверно указан срок действия карты"));
-    }
-
-    public void verifyInvalidExpirationYear() {
-        validateNoErrors();
-        errorExpirationYear.should(visible).should(text("Истёк срок действия карты"));
-    }
-
-    public void verifyEmptyExpirationMonth() {
-        validateNoErrors();
-        errorExpirationMonth.should(visible).should(text("Неверный формат"));
-    }
-
-    public void verifyEmptyExpirationYear() {
-        validateNoErrors();
-        errorExpirationYear.should(visible).should(text("Неверный формат"));
-    }
-
-    public void verifyEmptyOwnerField() {
-        validateNoErrors();
-        errorOwner.should(visible).should(text("Поле обязательно для заполнения"));
-    }
-
-    public void verifyInvalidCvcFormat() {
-        validateNoErrors();
-        errorCvc.should(visible).should(text("Неверный формат"));
-    }
-
-    public void verifyEmptyCardNumber() {
-        errorCardNumber.should(visible).should(text("Неверный формат"));
+        notificationSuccess.shouldNotBe(visible);
     }
 
     public void verifyInvalidCardNumber() {
-        errorCardNumber.should(visible).should(text("Неверный формат"));
+        verifyError(errorCardNumber, "Неверный формат");
     }
 
     public void verifyInvalidOwnerFormat() {
-        validateNoErrors();
-        errorOwner.should(visible).should(text("Неверный формат данных"));
+        verifyError(errorOwner, "Неверный формат данных");
     }
 
-    private void validateNoErrors() {
-        errorCardNumber.should(hidden);
-        errorExpirationMonth.should(hidden);
-        errorExpirationYear.should(hidden);
-        errorOwner.should(hidden);
-        errorCvc.should(hidden);
+    public void verifyInvalidFieldMonth() {
+        verifyError(errorExpirationMonth, "Неверно указан срок действия карты");
+    }
+
+    public void verifyInvalidFieldMonthFormat() {
+        verifyError(errorExpirationMonth, "Неверный формат");
+    }
+
+    public void verifyInvalidFieldYear() {
+        verifyError(errorExpirationYear, "Истёк срок действия карты");
+    }
+
+    public void verifyInvalidCvcFormat() {
+        verifyError(errorCvc, "Неверный формат");
+    }
+
+    private void closeNotification(SelenideElement closeButton) {
+        closeButton.click();
     }
 }
