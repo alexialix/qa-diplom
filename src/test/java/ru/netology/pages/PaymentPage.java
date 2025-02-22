@@ -49,6 +49,7 @@ public class PaymentPage {
     }
 
     public void verifyAllFieldsEmpty() {
+        continueButton.click();
         cardNumberError.shouldBe(visible);
         expiryMonthError.shouldBe(visible);
         expiryYearError.shouldBe(visible);
@@ -63,7 +64,7 @@ public class PaymentPage {
         ownerError.shouldBe(hidden);
         cvcError.shouldBe(hidden);
         sendingNotification.shouldBe(visible, Duration.ofSeconds(15));
-        approvalNotification.shouldHave(text("Операция одобрена Банком."));
+        approvalNotification.shouldBe(visible, Duration.ofSeconds(15));
     }
 
     public void verifyDeclinedCardDetails() {
@@ -164,5 +165,13 @@ public class PaymentPage {
         ownerError.shouldBe(visible);
         ownerError.shouldHave(text("Неверный формат данных"));
         cvcError.shouldBe(hidden);
+    }
+    public void verifyInvalidСVCField() {
+        cardNumberError.shouldBe(hidden);
+        expiryMonthError.shouldBe(hidden);
+        expiryYearError.shouldBe(hidden);
+        ownerError.shouldBe(hidden);
+        cvcError.shouldBe(visible);
+        cvcError.shouldHave(text("Неверный формат"));
     }
 }

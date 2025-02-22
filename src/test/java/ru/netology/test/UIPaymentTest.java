@@ -7,12 +7,12 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.netology.data.CardInfo;
+import ru.netology.helper.DataHelper;
 import ru.netology.pages.HomePage;
 import ru.netology.pages.PaymentPage;
 
 
 import static com.codeborne.selenide.Selenide.open;
-import static java.lang.Thread.sleep;
 import static ru.netology.helper.DataHelper.*;
 
 
@@ -117,7 +117,21 @@ public class UIPaymentTest {
     }
 
     // поле Владелец
+    @Test
+    @DisplayName("Отправка формы с длинным значением в поле Владелец")
+    public void testWithLongOwnerInCredit() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(DataHelper.getApprovedCardNumber(), data.getMonth(), data.getYear(), DataHelper.getLongOwnerName(), data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
 
+    @Test
+    @DisplayName("Отправка формы с коротким значением в поле Владелец")
+    public void testWithShortOwnerInCredit() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(DataHelper.getApprovedCardNumber(), data.getMonth(), data.getYear(), "J", data.getCvc());
+        payment.verifyInvalidOwnerField();
+    }
     @Test
     @DisplayName("Отправка формы с тире в поле Владелец")
     public void testOwnerWithDash() {
@@ -153,6 +167,15 @@ public class UIPaymentTest {
         payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
         payment.verifyInvalidOwnerField();
     }
+
+    @Test
+    @DisplayName("Отправка формы с невалидным CVC")
+    public void testInvalidCVCField() {
+        PaymentPage payment = home.payment();
+        payment.enterValidCardDetails(data.getNumber(), data.getMonth(), data.getYear(), data.getName(), DataHelper.getInvalidFormatCVV());
+        payment.verifyInvalidСVCField();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"cardNumber", "month", "year", "owner", "cvc"})
     @DisplayName("Отправка формы с пустым полем {0}")
