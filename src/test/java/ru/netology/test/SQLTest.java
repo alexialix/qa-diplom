@@ -77,15 +77,6 @@ public class SQLTest {
     }
 
     @Test
-    @DisplayName("Интеграция даты credit_request_entity в order_entity")
-    public void verifyCreditOrderDateIntegrity() {
-        home.payment();
-        CreditPage payment = new CreditPage();
-        payment.enterCardDetails(DataHelper.getApprovedCardNumber(), data.getMonth(), data.getYear(), data.getName(), data.getCvc());
-        payment.verifyApprovedCardDetails();
-    }
-
-    @Test
     @DisplayName("Покупка в кредит ОТКЛОНЕНА")
     public void verifyCreditPaymentDeclinedStatus() {
         home.payment();

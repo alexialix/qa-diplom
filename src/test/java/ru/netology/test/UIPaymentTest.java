@@ -154,7 +154,7 @@ public class UIPaymentTest {
     @DisplayName("Отправка формы с цифрами в поле Владелец")
     public void testOwnerWithNumbers() {
         PaymentPage payment = home.payment();
-        String name = "Джон333";
+        String name = "John333";
         payment.enterValidCardDetails(getApprovedCardNumber(), data.getMonth(), data.getYear(), name, data.getCvc());
         payment.verifyInvalidOwnerField();
     }
