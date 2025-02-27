@@ -6,6 +6,11 @@ plugins {
 group 'org.example'
 version '1.0-SNAPSHOT'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
 
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
@@ -47,6 +52,4 @@ test {
     systemProperty("urlDB", System.getenv("URL_DB") ?: "jdbc:mysql://localhost:3306/app?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true")
     systemProperty("userDB", System.getenv("USER_DB") ?: "app")
     systemProperty("passwordDB", System.getenv("PASSWORD_DB") ?: "pass")
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
 }
