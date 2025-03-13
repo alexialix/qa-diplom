@@ -1,6 +1,8 @@
 package ru.netology.test;
 
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.selenide.AllureSelenide;
 
 import org.junit.jupiter.api.*;
@@ -21,16 +23,18 @@ public class UIPaymentTest {
     CardInfo data;
     HomePage home;
 
+    @BeforeAll
+    static void setUpAll() {
+        SelenideLogger.addListener("allure", new AllureSelenide());
+        WebDriverManager.chromedriver().setup();
+        Configuration.browser = "chrome";
+    }
+
     @BeforeEach
     public void prepare() {
         open("http://localhost:8080/");
         data = getApprovedCard();
         home = new HomePage();
-    }
-
-    @BeforeAll
-    static void setUpAll() {
-        SelenideLogger.addListener("allure", new AllureSelenide());
     }
 
     @AfterAll
