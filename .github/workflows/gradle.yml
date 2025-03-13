@@ -63,7 +63,7 @@ jobs:
           java -Dspring.datasource.url=jdbc:mysql://localhost:3306/app -jar artifacts/aqa-shop.jar &
           sleep 10 
       - name: Run tests
-        run: ./gradlew clean test -DurlDB="jdbc:mysql://localhost:3306/app" --warning-mode all --info
+        run: ./gradlew clean test -DurlDB="jdbc:mysql://localhost:3306/app" --info
 
       - name: Generate Allure report
         run: ./gradlew allureReport
