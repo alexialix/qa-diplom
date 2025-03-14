@@ -20,7 +20,10 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-
+          
+      - name: Give execute permission to gradlew
+        run: chmod +x ./gradlew
+        
       - name: Install Google Chrome and ChromeDriver
         run: |
           echo "Installing Google Chrome..."
