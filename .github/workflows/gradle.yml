@@ -14,15 +14,38 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install dependencies (Docker, Chrome, JDK 11)
+   
+      - name: Install JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'temurin'
+      
+      - name: Give execute permission to gradlew
+        run: chmod +x ./gradlew
+      
+      - name: Install dependencies (Docker, Chrome, JAVA_HOME 11)
         run: |
+          echo "Installing Google Chrome..."
           sudo apt-get update
-          sudo apt-get install -y docker.io google-chrome-stable
-          sudo systemctl start docker
+          sudo apt-get install -y google-chrome-stable
+          echo "Checking Google Chrome version..."
+          google-chrome --version
+          echo "Downloading compatible ChromeDriver..."
+          CHROMEDRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+          wget -q "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          echo "Checking ChromeDriver version..."
+          chromedriver --version
 
-      - name: Install ChromeDriver
-        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+          export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+          
           CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1)
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
@@ -30,17 +53,9 @@ jobs:
           sudo mv chromedriver /usr/local/bin/
           sudo chmod +x /usr/local/bin/chromedriver
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: 'temurin'
-
       - name: Start Docker Compose services
         run: docker-compose up -d --build
-
-      - name: Give execute permission to gradlew
-        run: chmod +x ./gradlew
+   
       - name: Run application
         run: |
           echo "Starting application..."
