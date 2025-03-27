@@ -21,8 +21,6 @@ public class UICreditTest {
     @BeforeAll
     static void setUpAll() {
         SelenideLogger.addListener("allure", new AllureSelenide());
-        WebDriverManager.chromedriver().setup();
-        Configuration.browser = "chrome";
     }
 
     @BeforeEach

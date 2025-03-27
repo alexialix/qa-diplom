@@ -35,6 +35,7 @@ public class CreditPage {
     private SelenideElement notificationFailure = $x("//*[@id=\"root\"]/div/div[3]/div[3]");
 
     private void verifyError(SelenideElement errorElement, String expectedErrorText) {
+        submitButton.shouldBe(visible, Duration.ofSeconds(15));
         submitButton.click();
 
         if (errorElement.exists() && errorElement.isDisplayed()) {
@@ -48,6 +49,7 @@ public class CreditPage {
 
 
     public void verifyErrorVisibility(String fieldWithError) {
+        submitButton.shouldBe(visible, Duration.ofSeconds(15));
         submitButton.click();
 
         Map<String, SelenideElement> errorFields = Map.of(

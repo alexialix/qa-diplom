@@ -23,9 +23,6 @@ public class SQLTest {
 
     @BeforeEach
     public void connect() {
-        WebDriverManager.chromedriver().setup();
-        Configuration.browser = "chrome";
-
         open("http://localhost:8080/");
 
         data = DataHelper.getApprovedCard();
