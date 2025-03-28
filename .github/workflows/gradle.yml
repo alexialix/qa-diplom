@@ -22,11 +22,9 @@ jobs:
         run: chmod +x gradlew
       - name: Wait for MySQL to be ready
         run: |
-          until mysqladmin ping -h"localhost" -P"3306" --silent; do
-            echo "Waiting for MySQL to be ready..."
-            sleep 5
-          done
-      - name: Run all tests (UI and DB)
+          echo "Waiting for MySQL to be ready..."
+          docker-compose exec -T mysql bash -c "until mysqladmin ping -h localhost --silent; do sleep 1; done;"
+      - name: Run tests (UI and DB)
         run: ./gradlew clean test \
           -DurlDB=${{ secrets.URL_DB }} \
           -DuserDB=${{ secrets.USER_DB }} \
