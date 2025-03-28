@@ -5,17 +5,6 @@ on: [push, pull_request]
 jobs:
   tests:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.PASSWORD_DB }}
-          MYSQL_DATABASE: app
-          MYSQL_USER: ${{ secrets.USER_DB }}
-          MYSQL_PASSWORD: ${{ secrets.PASSWORD_DB }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping --silent" --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v2
       - name: Conteiners start 
