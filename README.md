@@ -1,3 +1,4 @@
+![CI](https://github.com/alexialix/qa-diplom/actions/workflows/gradle.yml/badge.svg)
 # Дипломный проект профессии «Тестировщик»
 Автоматизация тестирования комплексного сервиса, взаимодействующего с СУБД и API Банка.
 ---
